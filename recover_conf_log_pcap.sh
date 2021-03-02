@@ -4,7 +4,14 @@ time_dir="`date +%H_%M`"
 archive_dir=./archives
 
 log_dir=$archive_dir/$date_dir/$time_dir
-mkdir -p $log_dir
+mkdir -p $log_dir/oai-hss-cfg $log_dir/oai-mme-cfg $log_dir/oai-spgwc-cfg $log_dir/oai-spgwu-cfg
+
+# retrieve the modified configuration files
+docker cp prod-oai-hss:/openair-hss/etc/. $log_dir/oai-hss-cfg
+docker cp prod-oai-hss-home:/openair-hss/etc/. $log_dir/oai-home-hss-cfg
+docker cp prod-oai-mme:/openair-mme/etc/. $log_dir/oai-mme-cfg
+docker cp prod-oai-spgwc:/openair-spgwc/etc/. $log_dir/oai-spgwc-cfg
+docker cp prod-oai-spgwu-tiny:/openair-spgwu-tiny/etc/. $log_dir/oai-spgwu-cfg
 
 # Then, the logs
 docker cp prod-oai-hss:/openair-hss/hss_check_run.log $log_dir

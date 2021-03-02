@@ -59,7 +59,7 @@ sleep 2
 
 ## Home HSS
 Home_HSS_IP=`docker exec -it prod-oai-hss-home /bin/bash -c "ifconfig eth1 | grep inet" | sed -f ./ci-scripts/convertIpAddrFromIfconfig.sed`
-python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --cassandra=${Home_Cassandra_IP} --hss_s6a=${Home_HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=5 --imsi=308931234561000 --ltek=fec86ba6eb707ed08905757b1bb44b8f --op=1006020f0a478bf6b699f15c062e42b3 --nb_mmes=1 --from_docker_file
+python3 component/oai-hss/ci-scripts/generateConfigFiles.py --kind=HSS --realm=airtel.bd --is_home --cassandra=${Home_Cassandra_IP} --hss_s6a=${Home_HSS_IP} --apn1=apn1.carrier.com --apn2=apn2.carrier.com --users=5 --imsi=308931234561000 --ltek=fec86ba6eb707ed08905757b1bb44b8f --op=1006020f0a478bf6b699f15c062e42b3 --nb_mmes=1 --from_docker_file
 docker cp ./hss-cfg.sh prod-oai-hss-home:/openair-hss/scripts
 docker exec -it prod-oai-hss-home /bin/bash -c "cd /openair-hss/scripts && chmod 777 hss-cfg.sh && ./hss-cfg.sh"
 sleep 2
@@ -68,7 +68,7 @@ sleep 2
 MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme`
 SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc`
 python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME \
-          --hss_s6a=${HSS_IP} --mme_s6a=${MME_IP} \
+          --hss_s6a=${Foreign_HSS_IP} --hhss_s6a=${Home_HSS_IP} --mme_s6a=${MME_IP} \
           --mme_s1c_IP=${MME_IP} --mme_s1c_name=eth0 \
           --mme_s10_IP=${MME_IP} --mme_s10_name=eth0 \
           --mme_s11_IP=${MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
