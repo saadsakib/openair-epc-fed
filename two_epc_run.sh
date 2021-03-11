@@ -1,8 +1,8 @@
 # Remove epc containers
 docker stop prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
-              prod-cassandra-home prod-oai-hss-home -t 1
+              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home -t 1
 docker rm prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
-              prod-cassandra-home prod-oai-hss-home 
+              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home
 
 # Config network 
 sudo sysctl net.ipv4.conf.all.forwarding=1
@@ -34,9 +34,9 @@ docker run --privileged --name prod-oai-hss-home -d --entrypoint /bin/bash oai-h
 # sleep 2
 docker network connect prod-oai-public-net prod-oai-hss-home
 sleep 1
-# docker run --privileged --name prod-oai-mme-home --network prod-oai-public-net \
-#              -d --entrypoint /bin/bash oai-mme:production -c "sleep infinity"
-# sleep 1
+docker run --privileged --name prod-oai-mme-home --network prod-oai-public-net \
+             -d --entrypoint /bin/bash oai-mme:production -c "sleep infinity"
+sleep 1
 # docker run --privileged --name prod-oai-spgwc-home --network prod-oai-public-net \
 #              -d --entrypoint /bin/bash oai-spgwc:production -c "sleep infinity"
 # sleep 1
@@ -86,17 +86,17 @@ docker exec -it prod-oai-mme /bin/bash -c "cd /openair-mme/scripts && chmod 777 
 sleep 1
 
 ## Home MME
-# Home_MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme-home`
+Home_MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme-home`
 # Home_SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc-home`
-# python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME \
-#           --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} \
-#           --mme_s1c_IP=${Home_MME_IP} --mme_s1c_name=eth0 \
-#           --mme_s10_IP=${Home_MME_IP} --mme_s10_name=eth0 \
-#           --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${Home_SPGW0_IP} \
-#           --mcc=508 --mnc=93 --tac_list="600 601 602" --from_docker_file
-# docker cp ./mme-cfg.sh prod-oai-mme-home:/openair-mme/scripts
-# docker exec -it prod-oai-mme-home /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"
-# sleep 1
+python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --realm=airtel.bd \
+          --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} \
+          --mme_s1c_IP=${Home_MME_IP} --mme_s1c_name=eth0 \
+          --mme_s10_IP=${Home_MME_IP} --mme_s10_name=eth0 \
+          --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
+          --mcc=508 --mnc=93 --tac_list="600 601 602" --from_docker_file
+docker cp ./mme-cfg.sh prod-oai-mme-home:/openair-mme/scripts
+docker exec -it prod-oai-mme-home /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"
+sleep 1
 
 ## SPGW-C
 MY_DNS_IP_ADDRESS='127.0.0.53'
@@ -149,7 +149,7 @@ sleep 2
 docker cp ./mme_roaming.conf prod-oai-mme:/openair-mme/etc/
 docker exec -d prod-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_roaming.conf > mme_check_run.log 2>&1"
 # docker cp ./mme_home.conf prod-oai-mme-home:/openair-mme/etc/
-# docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_home.conf > mme_check_run.log 2>&1"
+docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > mme_check_run.log 2>&1"
 sleep 2
 docker exec -d prod-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
 # docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
