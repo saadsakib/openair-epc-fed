@@ -89,7 +89,7 @@ sleep 1
 Home_MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme-home`
 # Home_SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc-home`
 python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --realm=airtel.bd \
-          --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} \
+          --is_home --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} \
           --mme_s1c_IP=${Home_MME_IP} --mme_s1c_name=eth0 \
           --mme_s10_IP=${Home_MME_IP} --mme_s10_name=eth0 \
           --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
@@ -149,7 +149,7 @@ sleep 2
 docker cp ./mme_roaming.conf prod-oai-mme:/openair-mme/etc/
 docker exec -d prod-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_roaming.conf > mme_check_run.log 2>&1"
 # docker cp ./mme_home.conf prod-oai-mme-home:/openair-mme/etc/
-docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > mme_check_run.log 2>&1"
+docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > home_mme_check_run.log 2>&1"
 sleep 2
 docker exec -d prod-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
 # docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
