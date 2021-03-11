@@ -89,7 +89,7 @@ sleep 1
 Home_MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme-home`
 # Home_SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc-home`
 python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --realm=airtel.bd \
-          --is_home --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} \
+          --is_home --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} --mme_code=4 \
           --mme_s1c_IP=${Home_MME_IP} --mme_s1c_name=eth0 \
           --mme_s10_IP=${Home_MME_IP} --mme_s10_name=eth0 \
           --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
@@ -135,7 +135,7 @@ sleep 1
 docker exec -d prod-oai-hss /bin/bash -c "nohup tshark -i eth0 -i eth1 -w /tmp/hss_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-hss-home /bin/bash -c "nohup tshark -i eth0 -i eth1 -w /tmp/home_hss_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-mme /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"
-# docker exec -d prod-oai-mme-home /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"
+docker exec -d prod-oai-mme-home /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/home_mme_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-spgwc /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"
 # docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
