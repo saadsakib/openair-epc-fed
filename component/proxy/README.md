@@ -9,6 +9,6 @@
 
 ## Run 
 ```
-freeDiameterd -c virtualhss.conf 
-freeDiameterd -c virtualmme.conf
+freeDiameterd -dd -c virtualhss.conf 
+freeDiameterd -dd -c virtualmme.conf
 ```

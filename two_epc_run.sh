@@ -1,3 +1,6 @@
+# Remove proxy components 
+sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868)
+
 # Remove epc containers
 docker stop prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
               prod-cassandra-home prod-oai-hss-home prod-oai-mme-home -t 1
@@ -143,11 +146,18 @@ docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/sp
 # docker exec -d prod-oai-spgwu-tiny-home /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
 sleep 1
 
+## Launch proxy
+cd component/proxy/ 
+freeDiameterd -c virtualhss.conf &
+freeDiameterd -c virtualmme.conf &
+cd ../../
+
 ## Launch network functions
 docker exec -d prod-oai-hss /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14.json --reloadkey true > hss_check_run.log 2>&1"
 docker exec -d prod-oai-hss-home /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14.json --reloadkey true > home_hss_check_run.log 2>&1"
 sleep 2
 docker cp ./mme_roaming.conf prod-oai-mme:/openair-mme/etc/
+docker cp ./rtd_foreignmme.conf prod-oai-mme:/openair-mme/etc/
 docker exec -d prod-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_roaming.conf > mme_check_run.log 2>&1"
 # docker cp ./mme_home.conf prod-oai-mme-home:/openair-mme/etc/
 docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > home_mme_check_run.log 2>&1"
