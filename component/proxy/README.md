@@ -2,9 +2,9 @@
 
 ## Create certificates 
 ```
-./make_certs.sh virtualhss proxy.co
+./make_certs.sh hss proxy.co
 
-./make_certs.sh virtualmme proxy.co
+./make_certs.sh mme proxy.co
 ```
 
 ## Run 
