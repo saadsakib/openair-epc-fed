@@ -148,6 +148,7 @@ docker exec -d prod-oai-hss /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14
 docker exec -d prod-oai-hss-home /bin/bash -c "nohup ./bin/oai_hss -j ./etc/hss_rel14.json --reloadkey true > home_hss_check_run.log 2>&1"
 sleep 2
 docker cp ./mme_roaming.conf prod-oai-mme:/openair-mme/etc/
+docker cp ./rtd_foreignmme.conf prod-oai-mme:/openair-mme/etc/
 docker exec -d prod-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_roaming.conf > mme_check_run.log 2>&1"
 # docker cp ./mme_home.conf prod-oai-mme-home:/openair-mme/etc/
 docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > home_mme_check_run.log 2>&1"
