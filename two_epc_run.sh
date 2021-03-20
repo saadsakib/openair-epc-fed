@@ -3,9 +3,11 @@ sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868)
 
 # Remove epc containers
 docker stop prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
-              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home -t 1
+              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home \
+              prod-oai-spgwc-home prod-oai-spgwu-tiny-home -t 1
 docker rm prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
-              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home
+              prod-cassandra-home prod-oai-hss-home prod-oai-mme-home \
+              prod-oai-spgwc-home prod-oai-spgwu-tiny-home
 
 # Config network 
 sudo sysctl net.ipv4.conf.all.forwarding=1
@@ -40,11 +42,11 @@ sleep 1
 docker run --privileged --name prod-oai-mme-home --network prod-oai-public-net \
              -d --entrypoint /bin/bash oai-mme:production -c "sleep infinity"
 sleep 1
-# docker run --privileged --name prod-oai-spgwc-home --network prod-oai-public-net \
-#              -d --entrypoint /bin/bash oai-spgwc:production -c "sleep infinity"
-# sleep 1
-# docker run --privileged --name prod-oai-spgwu-tiny-home --network prod-oai-public-net \
-#              -d --entrypoint /bin/bash oai-spgwu-tiny:production -c "sleep infinity"
+docker run --privileged --name prod-oai-spgwc-home --network prod-oai-public-net \
+             -d --entrypoint /bin/bash oai-spgwc:production -c "sleep infinity"
+sleep 1
+docker run --privileged --name prod-oai-spgwu-tiny-home --network prod-oai-public-net \
+             -d --entrypoint /bin/bash oai-spgwu-tiny:production -c "sleep infinity"
 
 # Configure the containers
 ## Foreign Cassandra
@@ -91,12 +93,12 @@ sleep 1
 
 ## Home MME
 Home_MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme-home`
-# Home_SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc-home`
+Home_SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc-home`
 python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME --realm=airtel.bd \
           --is_home --hss_s6a=${Home_HSS_IP} --mme_s6a=${Home_MME_IP} --mme_code=4 \
           --mme_s1c_IP=${Home_MME_IP} --mme_s1c_name=eth0 \
           --mme_s10_IP=${Home_MME_IP} --mme_s10_name=eth0 \
-          --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
+          --mme_s11_IP=${Home_MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${Home_SPGW0_IP} \
           --mcc=508 --mnc=93 --tac_list="600 601 602" --from_docker_file
 docker cp ./mme-cfg.sh prod-oai-mme-home:/openair-mme/scripts
 docker exec -it prod-oai-mme-home /bin/bash -c "cd /openair-mme/scripts && chmod 777 mme-cfg.sh && ./mme-cfg.sh"
@@ -112,13 +114,13 @@ docker cp ./spgwc-cfg.sh prod-oai-spgwc:/openair-spgwc
 docker exec -it prod-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
 sleep 1
 
-## Home SPGW-C
-# python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
-#           --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com \
-#           --dns1_ip=${MY_DNS_IP_ADDRESS} --dns2_ip=${A_SECONDARY_DNS_IP_ADDRESS} --from_docker_file
-# docker cp ./spgwc-cfg.sh prod-oai-spgwc-home:/openair-spgwc
-# docker exec -it prod-oai-spgwc-home /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
-# sleep 1
+# Home SPGW-C
+python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C \
+          --s11c=eth0 --sxc=eth0 --apn=apn1.carrier.com \
+          --dns1_ip=${MY_DNS_IP_ADDRESS} --dns2_ip=${A_SECONDARY_DNS_IP_ADDRESS} --from_docker_file
+docker cp ./spgwc-cfg.sh prod-oai-spgwc-home:/openair-spgwc
+docker exec -it prod-oai-spgwc-home /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"
+sleep 1
 
 ## SPGW-U
 python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
@@ -128,11 +130,11 @@ docker exec -it prod-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmo
 sleep 1
 
 ## Home SPGW-U
-# python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
-#           --sxc_ip_addr=${Home_SPGW0_IP} --sxu=eth0 --s1u=eth0 --network_ue_nat_option=yes --from_docker_file
-# docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny-home:/openair-spgwu-tiny
-# docker exec -it prod-oai-spgwu-tiny-home /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
-# sleep 1
+python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U \
+          --sxc_ip_addr=${Home_SPGW0_IP} --sxu=eth0 --s1u=eth0 --network_ue_nat_option=yes --from_docker_file
+docker cp ./spgwu-cfg.sh prod-oai-spgwu-tiny-home:/openair-spgwu-tiny
+docker exec -it prod-oai-spgwu-tiny-home /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"
+sleep 1
 
 # Running Network Functions
 ## Launch tshark
@@ -141,9 +143,9 @@ docker exec -d prod-oai-hss-home /bin/bash -c "nohup tshark -i eth0 -i eth1 -w /
 docker exec -d prod-oai-mme /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/mme_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-mme-home /bin/bash -c "nohup tshark -i eth0 -i lo:s10 -w /tmp/home_mme_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-spgwc /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"
-# docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/spgwc_check_run.pcap 2>&1 > /dev/null"
+docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup tshark -i eth0 -i lo:p5c -i lo:s5c -w /tmp/home_spgwc_check_run.pcap 2>&1 > /dev/null"
 docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
-# docker exec -d prod-oai-spgwu-tiny-home /bin/bash -c "nohup tshark -i eth0 -w /tmp/spgwu_check_run.pcap 2>&1 > /dev/null"
+docker exec -d prod-oai-spgwu-tiny-home /bin/bash -c "nohup tshark -i eth0 -w /tmp/home_spgwu_check_run.pcap 2>&1 > /dev/null"
 sleep 1
 
 ## Launch proxy
@@ -163,9 +165,9 @@ docker exec -d prod-oai-mme /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme_roami
 docker exec -d prod-oai-mme-home /bin/bash -c "nohup ./bin/oai_mme -c ./etc/mme.conf > home_mme_check_run.log 2>&1"
 sleep 2
 docker exec -d prod-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
-# docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"
+docker exec -d prod-oai-spgwc-home /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > home_spgwc_check_run.log 2>&1"
 sleep 2
 docker exec -d prod-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"
-# docker exec -d prod-oai-spgwu-tiny-home /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"
+docker exec -d prod-oai-spgwu-tiny-home /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > home_spgwu_check_run.log 2>&1"
 
 echo "done"
