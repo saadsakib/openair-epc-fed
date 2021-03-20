@@ -5,7 +5,6 @@ archive_dir=./archives
 
 log_dir=$archive_dir/$date_dir/$time_dir
 mkdir -p $log_dir
-# mkdir -p $log_dir/oai-hss-cfg $log_dir/oai-mme-cfg $log_dir/oai-spgwc-cfg $log_dir/oai-spgwu-cfg
 
 # retrieve the modified configuration files
 docker cp prod-oai-hss:/openair-hss/etc/. $log_dir/oai-hss-cfg

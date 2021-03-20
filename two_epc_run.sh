@@ -1,3 +1,6 @@
+# Remove proxy components 
+sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868)
+
 # Remove epc containers
 docker stop prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
               prod-cassandra-home prod-oai-hss-home prod-oai-mme-home -t 1
