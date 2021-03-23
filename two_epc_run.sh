@@ -80,9 +80,9 @@ sleep 1
 ## Foreign MME
 MME_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-mme`
 SPGW0_IP=`docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" prod-oai-spgwc`
-Proxy_HSS_IP='192.168.1.103'
+Proxy_HSS_IP='192.168.43.99'
 python3 component/oai-mme/ci-scripts/generateConfigFiles.py --kind=MME \
-          --hss_s6a=${Foreign_HSS_IP} --hhss_s6a=${Proxy_HSS_IP} --mme_s6a=${MME_IP} \
+          --hss_s6a=${Foreign_HSS_IP} --phss_s6a=${Proxy_HSS_IP} --mme_s6a=${MME_IP} \
           --mme_s1c_IP=${MME_IP} --mme_s1c_name=eth0 \
           --mme_s10_IP=${MME_IP} --mme_s10_name=eth0 \
           --mme_s11_IP=${MME_IP} --mme_s11_name=eth0 --spgwc0_s11_IP=${SPGW0_IP} \
