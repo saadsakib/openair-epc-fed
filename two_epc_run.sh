@@ -1,5 +1,5 @@
 # Remove proxy components 
-sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868)
+sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868) $(lsof -t -i:10868)
 
 # Remove epc containers
 docker stop prod-cassandra prod-oai-hss prod-oai-mme prod-oai-spgwc prod-oai-spgwu-tiny \
@@ -151,6 +151,7 @@ sleep 1
 ## Launch proxy
 cd component/proxy/ 
 freeDiameterd -c virtualhss.conf &
+freeDiameterd -c relay.conf &
 freeDiameterd -c virtualmme.conf &
 cd ../../
 
