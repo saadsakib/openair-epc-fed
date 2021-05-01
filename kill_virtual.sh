@@ -1,0 +1,1 @@
+sudo kill -9 $(lsof -t -i:3868) $(lsof -t -i:9868)
